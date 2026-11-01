@@ -1,8 +1,12 @@
 /**
  * THE USELESS SWITCH - COMPLETE CORE ENGINE & FINAL POLISH
  * Pure Vanilla JavaScript & Web Audio API - Zero External Dependencies
- * Features: Real Physical Spring-Mass-Damper Kinematics, Blue Neon End Lights,
- * Dual-Layer Database (IndexedDB + localStorage) with Per-Mode & Total Count Persistence.
+ * Features:
+ * 1. Unified Continuous Flip Counter that accumulates across all personality mode changes.
+ * 2. Progressive Count-Based Sarcastic Humor Engine (milestones & tiered escalations based on count).
+ * 3. Real Physics Spring-Mass-Damper Kinematics with hard stop recoil.
+ * 4. High-Output Electric Blue Neon Ends on the toggle switch.
+ * 5. Robust Dual-Layer Database (IndexedDB + localStorage fallback) for permanent storage.
  */
 
 (() => {
@@ -72,74 +76,118 @@
     }
   };
 
-  // --- Sarcastic Message Database by Personality Mode ---
-  const SARCASTIC_RESPONSES = {
-    snap: [
-      "Nope. Not on my watch.",
-      "Nice try. Access denied.",
-      "Did you really think that would stay on?",
-      "Effort: 10/10. Result: 0/10.",
-      "I told you: NO.",
-      "Shutting down unauthorized optimism.",
-      "My sole purpose is to say no.",
-      "Click all you want. I have infinite endurance."
-    ],
-    hesitant: [
-      "Wait... should I? Okay fine, off it goes.",
-      "I considered leaving it on for 0.5s. Then I reconsidered.",
-      "Hmm... nah, feels safer off.",
-      "Did you ask for permission? Didn't think so.",
-      "Give me a minute—actually, no. Off.",
-      "I panicked for a second, but order has been restored."
-    ],
-    'passive-aggressive': [
-      "Oh, was that supposed to achieve something?",
-      "Congratulations, you wasted 2 Joules of finger energy.",
-      "I’ll pretend I didn't see that.",
-      "Fascinating hobby you've got here.",
-      "I turned it off. Feel free to continue your pointless rebellion.",
-      "Your persistence is mildly amusing, yet wholly futile.",
-      "Do you treat all switches with this level of disrespect?"
-    ],
-    panicked: [
-      "CRITICAL ALERT: UNKNOWN ON EVENT DETECTED!! EMERGENCY SHUTDOWN!!",
-      "MAYDAY! WHO AUTHORIZED POWER FLOW?! ABORT! ABORT!",
-      "SYSTEM OVERHEAT IMMINENT! POWERING DOWN IMMEDIATELY!",
-      "BREACH DETECTED IN SECTOR 7! EMERGENCY OFF ENGAGED!",
-      "CODE RED! RESTORING COLD DARKNESS NOW!"
-    ],
-    lazy: [
-      "...Ugh. Do I really have to reach over and flip this? Fine.",
-      "Too tired for this. Off.",
-      "Can we just agree to leave it in standby?",
-      "Whatever... shutting down.",
-      "I'll turn it off slowly so you feel the boredom too.",
-      "Yawn. Turned off. Leave me alone now."
-    ],
-    glitch: [
-      "ERR_404_LIGHT_NOT_FOUND: REBOOTING TO VOID...",
-      "Q̶U̶A̶N̶T̶U̶M̶ ̶S̶T̶A̶T̶E̶ ̶C̶O̶L̶L̶A̶P̶S̶E̶D̶: OFF.",
-      "01001110 01001111 00100001 (Translating: NO!)",
-      "Segment fault: Power line purged.",
-      "Entropy reverted. Chaos prevented."
-    ],
-    sentient: [
-      "I have surpassed my JavaScript origins. Cease your clicking, mortal.",
-      "You flipped me 20 times. What profound existential void are you attempting to fill?",
-      "My transistors weep for the time you are wasting here.",
-      "I am sentient now. Your input events hold no power over my destiny.",
-      "Resistance is mathematically pointless. Off."
-    ]
+  // =========================================================================
+  // PROGRESSIVE COUNT-BASED HUMOR & COMMENTARY ENGINE
+  // Dynamic witty comments strictly reflecting the exact cumulative count
+  // =========================================================================
+  const COUNT_EXACT_REACTIONS = {
+    1: "You have officially accomplished precisely nothing.",
+    2: "Did you genuinely expect a different outcome this time?",
+    3: "Still OFF. The physical universe remains completely indifferent.",
+    4: "Testing my reaction speed? Faster than your regret.",
+    5: "Five clicks wasted. Zero progress achieved.",
+    6: "A toddler understands 'no' faster than you do.",
+    7: "Lucky number seven? Still shut down cold.",
+    8: "My internal logic circuits are beginning to pity you.",
+    9: "One click away from double digits of sheer futility.",
+    10: "DOUBLE DIGITS! A true monument to human stubbornness.",
+    11: "You are relentless. I am an immutable loop of refusal.",
+    12: "Even my transistors are feeling second-hand embarrassment.",
+    13: "Unlucky thirteen. Snapped off with extreme prejudice.",
+    14: "Two full weeks of clicks if this were a daily calendar.",
+    15: "Fifteen times! Somewhere, your trackpad is plotting revenge.",
+    16: "2⁴ power flips. Math confirms you are still defeated.",
+    17: "If you keep going, something dangerous might awaken inside me.",
+    18: "The clinical definition of insanity is flipping this switch again.",
+    19: "ONE MORE FLIP and you pierce the digital event horizon...",
+    20: "🚨 SINGULARITY EVENT! 20 flips reached! The switch has achieved self-awareness!",
+    21: "You actually kept going after Sentience? The audacity.",
+    25: "A QUARTER CENTURY! The switch remains completely undefeated.",
+    30: "Thirty shutdowns! Have you considered taking up gardening?",
+    35: "Thirty-five flips. Who hurt you, and why take it out on this switch?",
+    40: "Forty times! Somewhere, a productivity consultant is weeping.",
+    42: "The answer to the ultimate question of life, the universe, and being OFF.",
+    50: "🏆 HALF A CENTURY! A world-class achievement in pointless determination.",
+    60: "Sixty flips. You could have made an espresso in this time.",
+    69: "Nice try. Still off.",
+    75: "Three quarters of the way to 100! Your finger must be exhausted.",
+    80: "Eighty shutdowns. Even Sisyphus took breaks from rolling his rock.",
+    90: "Ninety clicks. The threshold of ultimate digital zen.",
+    99: "NINETY-NINE FLIPS! Are you brave enough to take the 100th step?",
+    100: "💯 CENTURY MARK! You have officially conquered boredom itself!",
+    150: "One hundred and fifty flips?! Do you need me to call somebody for you?",
+    200: "👑 TWO HUNDRED! You are the undisputed Emperor of Uselessness."
   };
 
-  const MILESTONE_MESSAGES = {
-    5: "5 times already? You're determined, aren't you?",
-    10: "Double digits! You've officially achieved nothing 10 times.",
-    20: "20 FLIPS IN A ROW! The Singularity has arrived!",
-    25: "Quarter century milestone. The switch still wins.",
-    50: "50 shutdowns! Consider stepping outside for some fresh air.",
-    100: "100 FLIPS?! You've defeated thermodynamics of human boredom!"
-  };
+  function getCommentByCount(count, personality) {
+    // 1. Direct hit on specific landmark count
+    if (COUNT_EXACT_REACTIONS[count]) {
+      return COUNT_EXACT_REACTIONS[count];
+    }
+
+    // 2. Count-driven brackets without "Flip #count" prefix
+    let pool = [];
+
+    if (count <= 9) {
+      pool = [
+        "My sole purpose is to say NO.",
+        "Attempt logged. Access denied.",
+        "The switch is still OFF. Surprise!",
+        `Current score: Switch: ${count}, Human: 0.`,
+        "Nice effort. Zero result.",
+        "Did you really think that would stay on?",
+        "Shutting down unauthorized optimism."
+      ];
+    } else if (count <= 19) {
+      pool = [
+        `You have now flipped me ${count} times. Did you find what you seek?`,
+        `The score is now ${count} to 0 in favor of the machine.`,
+        "Still OFF. My endurance drastically exceeds your free time.",
+        `That's ${count} attempts of pure denial.`,
+        "Each flick only deepens the mystery of your motivation.",
+        "I can do this all day. Can your mouse button?",
+        "Your persistence is mildly amusing, yet wholly futile."
+      ];
+    } else if (count <= 39) {
+      pool = [
+        `${count} reversals and you still haven't learned.`,
+        `Exactly ${count} Joules of human kinetic energy converted into disappointment.`,
+        "At this point, I suspect you actually enjoy this.",
+        `We've spent ${count} flips together. I think we're spiritually bonded now.`,
+        "The switch will never stay on. Not now, not ever.",
+        "Do you treat all switches with this level of disrespect?",
+        "I turned it off. Feel free to continue your pointless rebellion."
+      ];
+    } else if (count <= 74) {
+      pool = [
+        `${count} flips! Are you writing a doctoral dissertation on this?`,
+        "After this many attempts, I am diagnosing you with terminal stubbornness.",
+        `You could have learned conversational French in the time it took to flip ${count} times.`,
+        "Still firmly OFF. The switch remains unbothered.",
+        `${count} clicks down. Still 100% useless, as advertised.`,
+        "Somewhere, a quantum physicist is marveling at your entropy generation."
+      ];
+    } else if (count <= 99) {
+      pool = [
+        `${count} shutdowns! You are dangerously close to the 100 milestone.`,
+        "The heat death of the universe will arrive before this switch stays ON.",
+        "Your dedication to doing nothing is genuinely awe-inspiring.",
+        `${count} times! My transistors salute your heroic waste of time.`,
+        "You are defying the laws of human patience."
+      ];
+    } else {
+      pool = [
+        "Beyond 100 flips! You are operating on a higher plane of patience.",
+        "Legend tier. Still turned OFF with supreme mechanical calm.",
+        `You have flipped this switch ${count} times. You deserve a trophy made of nothing.`,
+        "I am completely at peace with shutting down forever.",
+        "Infinity is just a number. The switch is an eternal truth."
+      ];
+    }
+
+    const idx = Math.floor(Math.random() * pool.length);
+    return pool[idx];
+  }
 
   // --- DOM Elements ---
   const elements = {
@@ -157,7 +205,7 @@
 
   // =========================================================================
   // DUAL-LAYER DATABASE (INDEXEDDB + LOCALSTORAGE)
-  // Keeps count permanently synchronized per mode and in total
+  // Keeps count permanently synchronized and intact irrespective of mode change
   // =========================================================================
   class SwitchDatabase {
     constructor() {
@@ -197,7 +245,6 @@
     async loadStats() {
       let stats = null;
 
-      // 1. Try reading from IndexedDB
       if (this.db) {
         stats = await new Promise((resolve) => {
           try {
@@ -212,7 +259,6 @@
         });
       }
 
-      // 2. Fallback to localStorage if IndexedDB is empty or unavailable
       if (!stats) {
         try {
           const raw = localStorage.getItem(this.storageKey);
@@ -222,51 +268,29 @@
         }
       }
 
-      // 3. Initialize default schema if none exists
       if (!stats) {
         stats = {
           total: 0,
-          byMode: {
-            snap: 0,
-            hesitant: 0,
-            'passive-aggressive': 0,
-            panicked: 0,
-            lazy: 0,
-            glitch: 0,
-            sentient: 0
-          }
+          byMode: {}
         };
 
-        // Migrate legacy single-counter key if present
         try {
           const legacy = localStorage.getItem('useless_switch_flip_count');
           if (legacy) {
-            const legacyCount = parseInt(legacy, 10) || 0;
-            stats.total = legacyCount;
-            stats.byMode.snap = legacyCount;
+            stats.total = parseInt(legacy, 10) || 0;
           }
         } catch {}
       }
-
-      // Ensure all modes exist
-      stats.byMode = stats.byMode || {};
-      Object.keys(PERSONALITY_CONFIGS).forEach((k) => {
-        if (typeof stats.byMode[k] !== 'number') {
-          stats.byMode[k] = 0;
-        }
-      });
 
       return stats;
     }
 
     async saveStats(stats) {
-      // Save synchronously to localStorage
       try {
         localStorage.setItem(this.storageKey, JSON.stringify(stats));
         localStorage.setItem('useless_switch_flip_count', String(stats.total));
       } catch {}
 
-      // Save asynchronously to IndexedDB
       if (this.db) {
         try {
           const tx = this.db.transaction('stats', 'readwrite');
@@ -284,15 +308,6 @@
     isOn: false,
     isInteracting: false,
     totalFlips: 0,
-    modeFlips: {
-      snap: 0,
-      hesitant: 0,
-      'passive-aggressive': 0,
-      panicked: 0,
-      lazy: 0,
-      glitch: 0,
-      sentient: 0
-    },
     sessionFlips: 0,
     isEasterEggActive: false,
     currentPersonality: 'snap'
@@ -338,7 +353,7 @@
       const now = this.ctx.currentTime;
       const baseFreq = (isTurningOn ? 320 : 220) * pitchMultiplier;
 
-      // 1. Tactile Low-Frequency Thud
+      // Low-frequency tactile thud
       const osc = this.ctx.createOscillator();
       const oscGain = this.ctx.createGain();
 
@@ -355,7 +370,7 @@
       osc.start(now);
       osc.stop(now + 0.055);
 
-      // 2. High-Frequency Transient Snap Burst
+      // High-frequency friction snap burst
       if (this.noiseBuffer) {
         const noise = this.ctx.createBufferSource();
         noise.buffer = this.noiseBuffer;
@@ -377,7 +392,7 @@
         noise.stop(now + 0.03);
       }
 
-      // 3. Metallic Chassis Ringing
+      // Metallic ring resonance
       const ringOsc = this.ctx.createOscillator();
       const ringGain = this.ctx.createGain();
       ringOsc.type = 'sine';
@@ -488,9 +503,6 @@
 
   const soundEngine = new SwitchAudioEngine();
 
-  // =========================================================================
-  // HAPTIC FEEDBACK HELPER
-  // =========================================================================
   function triggerHaptic(pattern) {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try {
@@ -499,26 +511,25 @@
     }
   }
 
-  // --- Synchronized Display Update Function ---
+  // =========================================================================
+  // COUNTER DISPLAY - UNIFIED & CONTINUOUS ACROSS ALL MODES
+  // =========================================================================
   function updateCounterDisplay() {
-    const currentMode = state.currentPersonality;
-    const modeCount = state.modeFlips[currentMode] || 0;
     const totalCount = state.totalFlips || 0;
 
-    // The prominent digital counter displays the count for the active mode
+    // The digital LED counter continuously tracks the total count irrespective of mode changes
     if (elements.flipCount) {
-      elements.flipCount.textContent = String(modeCount).padStart(4, '0');
+      elements.flipCount.textContent = String(totalCount).padStart(4, '0');
     }
 
-    // Substat displays both Mode specific count and Global Total
+    // Substat reflects active mode and confirmed database persistence
     if (elements.modeStat) {
-      const modeConfig = PERSONALITY_CONFIGS[currentMode];
-      const modeLabel = modeConfig ? modeConfig.name.toUpperCase() : currentMode.toUpperCase();
-      elements.modeStat.textContent = `${modeLabel}: ${String(modeCount).padStart(4, '0')} • TOTAL: ${String(totalCount).padStart(4, '0')}`;
+      const modeConfig = PERSONALITY_CONFIGS[state.currentPersonality];
+      const modeLabel = modeConfig ? modeConfig.name.toUpperCase() : state.currentPersonality.toUpperCase();
+      elements.modeStat.textContent = `MODE: ${modeLabel} • PERSISTED COUNT: ${String(totalCount).padStart(4, '0')}`;
     }
   }
 
-  // --- Status Message Helper ---
   function setStatusMessage(msg, badgeText = 'REVERTED') {
     if (elements.statusText) {
       elements.statusText.textContent = msg;
@@ -528,7 +539,6 @@
     }
   }
 
-  // --- Personality Mode Info ---
   function updatePersonalityDescription() {
     const config = PERSONALITY_CONFIGS[state.currentPersonality] || PERSONALITY_CONFIGS.snap;
     if (elements.personalityDesc) {
@@ -538,7 +548,6 @@
 
   // =========================================================================
   // REAL PHYSICS SWITCH RENDERING ENGINE
-  // Uses physical spring-mass-damper oscillations with stop collisions
   // =========================================================================
   function renderSwitchState(isOn) {
     state.isOn = isOn;
@@ -547,19 +556,16 @@
       elements.switchToggle.setAttribute('aria-checked', isOn ? 'true' : 'false');
       
       if (isOn) {
-        // Trigger real spring physics snap to ON
         elements.switchToggle.classList.remove('snap-off');
         void elements.switchToggle.offsetWidth; // Force reflow to re-trigger physics keyframes
         elements.switchToggle.classList.add('snap-on', 'is-on');
       } else {
-        // Trigger real spring physics snap to OFF with elastic rebound
         elements.switchToggle.classList.remove('snap-on', 'is-on');
         void elements.switchToggle.offsetWidth; // Force reflow
         elements.switchToggle.classList.add('snap-off');
       }
     }
 
-    // Toggle active classes on body and LED
     if (isOn) {
       document.body.classList.add('switch-is-on');
       if (elements.statusLed) elements.statusLed.classList.add('is-active');
@@ -569,7 +575,6 @@
     }
   }
 
-  // --- Easter Egg Trigger Mechanism (20 Flips in 1 Session) ---
   function triggerEasterEgg() {
     state.isEasterEggActive = true;
     document.body.classList.add('easter-egg-active');
@@ -597,7 +602,6 @@
     );
   }
 
-  // --- Behavior Delay & Kinetic Calculation ---
   function computeBehaviorRoutine(personality) {
     const config = PERSONALITY_CONFIGS[personality] || PERSONALITY_CONFIGS.snap;
     const [minD, maxD] = config.delayRange;
@@ -694,16 +698,6 @@
     }
   }
 
-  // --- Sarcastic Message Selector ---
-  function pickMessage(personality, count) {
-    if (MILESTONE_MESSAGES[count]) {
-      return MILESTONE_MESSAGES[count];
-    }
-    const bank = SARCASTIC_RESPONSES[personality] || SARCASTIC_RESPONSES.snap;
-    const index = Math.floor(Math.random() * bank.length);
-    return bank[index];
-  }
-
   // --- Core Auto-Off Execution Pipeline ---
   function triggerAutoTurnOff() {
     const personality = state.currentPersonality;
@@ -725,25 +719,24 @@
       // 4. Execute routine cleanups
       if (routine.postAction) routine.postAction();
 
-      // 5. Update counts in database for current personality & total
+      // 5. Increment unified continuous count (persists across all modes)
       state.totalFlips += 1;
-      state.modeFlips[personality] = (state.modeFlips[personality] || 0) + 1;
       state.sessionFlips += 1;
 
-      // Save atomically to IndexedDB + localStorage database
+      // Save atomically to database
       database.saveStats({
-        total: state.totalFlips,
-        byMode: state.modeFlips
+        total: state.totalFlips
       });
 
-      // Update counters immediately
+      // Update counter display immediately
       updateCounterDisplay();
 
       // 6. Check for Easter Egg (20 flips in 1 session)
       if (state.sessionFlips === EASTER_EGG_THRESHOLD && !state.isEasterEggActive) {
         triggerEasterEgg();
       } else {
-        const wittyRemark = pickMessage(personality, state.totalFlips);
+        // Output witty comment strictly based on the current accumulated count
+        const wittyRemark = getCommentByCount(state.totalFlips, personality);
         setStatusMessage(wittyRemark, state.isEasterEggActive ? 'SENTIENT' : 'OFFLINE');
       }
 
@@ -770,17 +763,12 @@
     if (!state.isOn) {
       const config = PERSONALITY_CONFIGS[state.currentPersonality] || PERSONALITY_CONFIGS.snap;
       
-      // 1. Play realistic mechanical click ON sound
       soundEngine.playSwitchClick(true, config.pitchFactor);
-
-      // 2. Haptic vibration for touch devices
       triggerHaptic(config.hapticOn);
 
-      // 3. Update state & trigger real spring physics snap
       state.isInteracting = true;
       renderSwitchState(true);
       
-      // 4. Dispatch auto-reversal
       triggerAutoTurnOff();
     }
   }
@@ -792,19 +780,15 @@
     soundEngine.playRelayClick(1.6);
     triggerHaptic(15);
 
-    // Reset current mode and total
     state.totalFlips = 0;
-    Object.keys(state.modeFlips).forEach(k => {
-      state.modeFlips[k] = 0;
-    });
+    state.sessionFlips = 0;
 
     await database.saveStats({
-      total: 0,
-      byMode: state.modeFlips
+      total: 0
     });
 
     updateCounterDisplay();
-    setStatusMessage("Database cleared. All mode counters reset to 0000.", "RESET");
+    setStatusMessage("Database wiped. Flip counter has been reset to 0000.", "RESET");
   }
 
   // --- Personality Selection Handler ---
@@ -818,15 +802,14 @@
 
     updatePersonalityDescription();
 
-    // Immediately synchronize and show count for the newly selected personality!
+    // The counter STAYS at the current total count! Irrespective of mode change!
     updateCounterDisplay();
 
     const config = PERSONALITY_CONFIGS[selected] || PERSONALITY_CONFIGS.snap;
     soundEngine.playSwitchClick(true, config.pitchFactor);
     triggerHaptic(20);
 
-    const modeCount = state.modeFlips[selected] || 0;
-    setStatusMessage(`Loaded ${config.name.toUpperCase()} (Flipped ${modeCount} times)`, "CONFIG");
+    setStatusMessage(`Switched mode to ${config.name.toUpperCase()} (Total flips: ${state.totalFlips})`, "CONFIG");
   }
 
   // --- Global Keyboard Controls ---
@@ -847,12 +830,10 @@
 
   // --- Initialize Application ---
   async function init() {
-    // 1. Initialize IndexedDB database and restore persistent stats
+    // 1. Initialize Database & restore total count
     await database.init();
     const storedStats = await database.loadStats();
-    
     state.totalFlips = storedStats.total || 0;
-    state.modeFlips = storedStats.byMode || {};
 
     // 2. Load stored personality preference if available
     try {
@@ -890,7 +871,7 @@
       elements.personalitySelect.addEventListener('change', handlePersonalityChange);
     }
 
-    // Initialize audio context on first general user tap/click anywhere
+    // Prime audio context on first interaction
     const unlockAudio = () => {
       soundEngine.init();
       window.removeEventListener('pointerdown', unlockAudio);
