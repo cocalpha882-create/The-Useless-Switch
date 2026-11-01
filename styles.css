@@ -309,9 +309,8 @@ body.switch-is-on .label-off {
   cursor: pointer;
   outline: none;
   transform-style: preserve-3d;
-  transition: transform var(--transition-switch), filter 0.15s ease;
   transform-origin: center center;
-  /* Resting OFF state: rocker bottom pressed in towards OFF (downwards), top facet tilted up */
+  /* Resting OFF state */
   transform: rotateX(var(--lever-angle-off)) translateY(5px);
   touch-action: manipulation;
   z-index: 2;
@@ -323,9 +322,72 @@ body.switch-is-on .label-off {
   border-radius: 12px;
 }
 
-/* Lever Active ON state: rocker snaps upward towards ON */
+/* Lever Active ON state holding position */
 .switch-lever.is-on {
   transform: rotateX(var(--lever-angle-on)) translateY(-5px);
+}
+
+/* --- Real Physical Spring-Mass-Damper Snap Animations --- */
+.switch-lever.snap-on {
+  animation: physics-snap-on 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+}
+
+.switch-lever.snap-off {
+  animation: physics-snap-off 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+}
+
+@keyframes physics-snap-on {
+  0% {
+    transform: rotateX(-20deg) translateY(5px);
+  }
+  22% {
+    transform: rotateX(-8deg) translateY(2px);
+  }
+  50% {
+    transform: rotateX(16deg) translateY(-4px);
+  }
+  70% {
+    /* Mechanical impact collision overshoot */
+    transform: rotateX(24.5deg) translateY(-6.2px);
+  }
+  84% {
+    /* Elastic rebound recoil */
+    transform: rotateX(18.2deg) translateY(-4.4px);
+  }
+  93% {
+    /* Damped secondary harmonic settle */
+    transform: rotateX(20.8deg) translateY(-5.2px);
+  }
+  100% {
+    transform: rotateX(20deg) translateY(-5px);
+  }
+}
+
+@keyframes physics-snap-off {
+  0% {
+    transform: rotateX(20deg) translateY(-5px);
+  }
+  22% {
+    transform: rotateX(8deg) translateY(-2px);
+  }
+  50% {
+    transform: rotateX(-16deg) translateY(4px);
+  }
+  70% {
+    /* Mechanical impact collision overshoot */
+    transform: rotateX(-24.5deg) translateY(6.2px);
+  }
+  84% {
+    /* Elastic rebound recoil */
+    transform: rotateX(-18.2deg) translateY(4.4px);
+  }
+  93% {
+    /* Damped secondary harmonic settle */
+    transform: rotateX(-20.8deg) translateY(5.2px);
+  }
+  100% {
+    transform: rotateX(-20deg) translateY(5px);
+  }
 }
 
 /* 3D Volume Stem of the Lever */
@@ -359,6 +421,40 @@ body.switch-is-on .label-off {
   padding: 10px 0;
   overflow: hidden;
   transition: background 0.16s ease;
+  position: relative;
+}
+
+/* Blue Neon Like Light on Top & Bottom Ends of the Button */
+.face-front::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 3.5px;
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff,
+              0 0 18px rgba(0, 240, 255, 0.9),
+              0 0 28px rgba(0, 240, 255, 0.6),
+              inset 0 1px 1px #ffffff;
+  border-radius: 0 0 4px 4px;
+  z-index: 4;
+}
+
+.face-front::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 8%;
+  right: 8%;
+  height: 3.5px;
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff,
+              0 0 18px rgba(0, 240, 255, 0.9),
+              0 0 28px rgba(0, 240, 255, 0.6),
+              inset 0 1px 1px #ffffff;
+  border-radius: 4px 4px 0 0;
+  z-index: 4;
 }
 
 .switch-lever.is-on .face-front {
@@ -420,31 +516,51 @@ body.switch-is-on .label-off {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Top Face with Tactile Grips */
+/* Top Face with Blue Neon Light Bar */
 .face-top {
   height: var(--lever-depth);
   top: calc(-1 * var(--lever-depth) / 2);
-  background: linear-gradient(90deg, #323b49 0%, #58667a 50%, #323b49 100%);
+  background: linear-gradient(90deg, #1b2836 0%, #2f455c 50%, #1b2836 100%);
   transform: rotateX(90deg);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+  border-top: 2px solid #00f0ff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.7),
+              inset 0 1px 4px rgba(0, 240, 255, 0.5);
 }
 
-/* Bottom Face with Tactile Grips */
+/* Bottom Face with Blue Neon Light Bar */
 .face-bottom {
   height: var(--lever-depth);
   bottom: calc(-1 * var(--lever-depth) / 2);
   top: auto;
-  background: linear-gradient(90deg, #222832 0%, #445063 50%, #222832 100%);
+  background: linear-gradient(90deg, #1b2836 0%, #2f455c 50%, #1b2836 100%);
   transform: rotateX(-90deg);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: inset 0 -1px 2px rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid #00f0ff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.7),
+              inset 0 -1px 4px rgba(0, 240, 255, 0.5);
+}
+
+/* High-Output Blue Neon Light Bar Element */
+.neon-light-bar {
+  width: 78%;
+  height: 5px;
+  border-radius: 9999px;
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff,
+              0 0 20px rgba(0, 240, 255, 0.85),
+              0 0 32px rgba(0, 240, 255, 0.6),
+              inset 0 1px 1px #ffffff;
+  margin-bottom: 3px;
+  z-index: 2;
 }
 
 .grip-ridges {
@@ -638,6 +754,17 @@ body.switch-is-on .label-off {
   letter-spacing: 0.15em;
   color: var(--color-accent-cyan);
   text-shadow: 0 0 10px var(--color-accent-cyan-glow);
+}
+
+.counter-substat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-top: 0.35rem;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
 }
 
 .text-action-btn {

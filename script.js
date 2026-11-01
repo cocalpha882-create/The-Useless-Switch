@@ -1,13 +1,14 @@
 /**
- * THE USELESS SWITCH - COMPLETE CORE ENGINE & FINAL POLISH (Phases 3, 4 & 5)
+ * THE USELESS SWITCH - COMPLETE CORE ENGINE & FINAL POLISH
  * Pure Vanilla JavaScript & Web Audio API - Zero External Dependencies
+ * Features: Real Physical Spring-Mass-Damper Kinematics, Blue Neon End Lights,
+ * Dual-Layer Database (IndexedDB + localStorage) with Per-Mode & Total Count Persistence.
  */
 
 (() => {
   'use strict';
 
-  // --- Constants & Storage Keys ---
-  const STORAGE_KEY_COUNT = 'useless_switch_flip_count';
+  // --- Storage Constants ---
   const STORAGE_KEY_PERSONALITY = 'useless_switch_personality';
   const EASTER_EGG_THRESHOLD = 20;
 
@@ -148,16 +149,150 @@
     terminalBadge: document.getElementById('terminal-badge'),
     statusLed: document.getElementById('status-led'),
     flipCount: document.getElementById('flip-count'),
+    modeStat: document.getElementById('mode-stat'),
     resetBtn: document.getElementById('reset-counter-btn'),
     personalitySelect: document.getElementById('personality-select'),
     personalityDesc: document.getElementById('personality-desc')
   };
 
+  // =========================================================================
+  // DUAL-LAYER DATABASE (INDEXEDDB + LOCALSTORAGE)
+  // Keeps count permanently synchronized per mode and in total
+  // =========================================================================
+  class SwitchDatabase {
+    constructor() {
+      this.dbName = 'UselessSwitchDB';
+      this.dbVersion = 1;
+      this.db = null;
+      this.storageKey = 'useless_switch_database_v2';
+    }
+
+    async init() {
+      return new Promise((resolve) => {
+        if (typeof window === 'undefined' || !window.indexedDB) {
+          resolve(false);
+          return;
+        }
+        try {
+          const request = window.indexedDB.open(this.dbName, this.dbVersion);
+          request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('stats')) {
+              db.createObjectStore('stats', { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve(true);
+          };
+          request.onerror = () => {
+            resolve(false);
+          };
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+
+    async loadStats() {
+      let stats = null;
+
+      // 1. Try reading from IndexedDB
+      if (this.db) {
+        stats = await new Promise((resolve) => {
+          try {
+            const tx = this.db.transaction('stats', 'readonly');
+            const store = tx.objectStore('stats');
+            const req = store.get('counts');
+            req.onsuccess = () => resolve(req.result ? req.result.data : null);
+            req.onerror = () => resolve(null);
+          } catch {
+            resolve(null);
+          }
+        });
+      }
+
+      // 2. Fallback to localStorage if IndexedDB is empty or unavailable
+      if (!stats) {
+        try {
+          const raw = localStorage.getItem(this.storageKey);
+          if (raw) stats = JSON.parse(raw);
+        } catch {
+          stats = null;
+        }
+      }
+
+      // 3. Initialize default schema if none exists
+      if (!stats) {
+        stats = {
+          total: 0,
+          byMode: {
+            snap: 0,
+            hesitant: 0,
+            'passive-aggressive': 0,
+            panicked: 0,
+            lazy: 0,
+            glitch: 0,
+            sentient: 0
+          }
+        };
+
+        // Migrate legacy single-counter key if present
+        try {
+          const legacy = localStorage.getItem('useless_switch_flip_count');
+          if (legacy) {
+            const legacyCount = parseInt(legacy, 10) || 0;
+            stats.total = legacyCount;
+            stats.byMode.snap = legacyCount;
+          }
+        } catch {}
+      }
+
+      // Ensure all modes exist
+      stats.byMode = stats.byMode || {};
+      Object.keys(PERSONALITY_CONFIGS).forEach((k) => {
+        if (typeof stats.byMode[k] !== 'number') {
+          stats.byMode[k] = 0;
+        }
+      });
+
+      return stats;
+    }
+
+    async saveStats(stats) {
+      // Save synchronously to localStorage
+      try {
+        localStorage.setItem(this.storageKey, JSON.stringify(stats));
+        localStorage.setItem('useless_switch_flip_count', String(stats.total));
+      } catch {}
+
+      // Save asynchronously to IndexedDB
+      if (this.db) {
+        try {
+          const tx = this.db.transaction('stats', 'readwrite');
+          const store = tx.objectStore('stats');
+          store.put({ id: 'counts', data: stats, updatedAt: Date.now() });
+        } catch {}
+      }
+    }
+  }
+
+  const database = new SwitchDatabase();
+
   // --- Internal State ---
   const state = {
     isOn: false,
     isInteracting: false,
-    flipCount: 0,
+    totalFlips: 0,
+    modeFlips: {
+      snap: 0,
+      hesitant: 0,
+      'passive-aggressive': 0,
+      panicked: 0,
+      lazy: 0,
+      glitch: 0,
+      sentient: 0
+    },
     sessionFlips: 0,
     isEasterEggActive: false,
     currentPersonality: 'snap'
@@ -185,7 +320,6 @@
       }
     }
 
-    // Pre-bake 0.1s of white noise for transient mechanical snap friction
     generateNoiseBuffer() {
       if (!this.ctx) return;
       const bufferSize = Math.floor(this.ctx.sampleRate * 0.1);
@@ -197,11 +331,6 @@
       this.noiseBuffer = buffer;
     }
 
-    /**
-     * Synthesize realistic physical toggle snap
-     * @param {boolean} isTurningOn - Direction of the flip
-     * @param {number} pitchMultiplier - Scaled by personality
-     */
     playSwitchClick(isTurningOn = true, pitchMultiplier = 1.0) {
       this.init();
       if (!this.ctx) return;
@@ -209,7 +338,7 @@
       const now = this.ctx.currentTime;
       const baseFreq = (isTurningOn ? 320 : 220) * pitchMultiplier;
 
-      // 1. Tactile Low-Frequency Thud (Sub impulse body)
+      // 1. Tactile Low-Frequency Thud
       const osc = this.ctx.createOscillator();
       const oscGain = this.ctx.createGain();
 
@@ -226,7 +355,7 @@
       osc.start(now);
       osc.stop(now + 0.055);
 
-      // 2. High-Frequency Transient Snap Burst (Simulates physical metal contacts)
+      // 2. High-Frequency Transient Snap Burst
       if (this.noiseBuffer) {
         const noise = this.ctx.createBufferSource();
         noise.buffer = this.noiseBuffer;
@@ -248,7 +377,7 @@
         noise.stop(now + 0.03);
       }
 
-      // 3. Metallic Chassis Ringing (Micro resonance)
+      // 3. Metallic Chassis Ringing
       const ringOsc = this.ctx.createOscillator();
       const ringGain = this.ctx.createGain();
       ringOsc.type = 'sine';
@@ -264,9 +393,6 @@
       ringOsc.stop(now + 0.065);
     }
 
-    /**
-     * Subtle relay micro-click for hesitant wavering
-     */
     playRelayClick(pitch = 1.0) {
       this.init();
       if (!this.ctx) return;
@@ -289,9 +415,6 @@
       osc.stop(now + 0.025);
     }
 
-    /**
-     * Urgent alarm chimes for panicked mode
-     */
     playAlarmChirp() {
       this.init();
       if (!this.ctx) return;
@@ -314,9 +437,6 @@
       osc.stop(now + 0.17);
     }
 
-    /**
-     * Cybernetic FM glitch buzz for quantum mode
-     */
     playGlitchBuzz() {
       this.init();
       if (!this.ctx) return;
@@ -340,15 +460,12 @@
       osc.stop(now + 0.15);
     }
 
-    /**
-     * Easter Egg Fanfare: Ascending sci-fi synth arpeggio
-     */
     playEasterEggFanfare() {
       this.init();
       if (!this.ctx) return;
 
       const now = this.ctx.currentTime;
-      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
       
       notes.forEach((freq, idx) => {
         const osc = this.ctx.createOscillator();
@@ -378,33 +495,26 @@
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try {
         navigator.vibrate(pattern);
-      } catch {
-        // Haptics disabled or unavailable
-      }
+      } catch {}
     }
   }
 
-  // --- Counter Helper Functions ---
-  function loadStoredCount() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_COUNT);
-      return stored ? Math.max(0, parseInt(stored, 10) || 0) : 0;
-    } catch {
-      return 0;
-    }
-  }
-
-  function saveStoredCount(count) {
-    try {
-      localStorage.setItem(STORAGE_KEY_COUNT, String(count));
-    } catch {
-      // Storage unavailable fallback
-    }
-  }
-
+  // --- Synchronized Display Update Function ---
   function updateCounterDisplay() {
+    const currentMode = state.currentPersonality;
+    const modeCount = state.modeFlips[currentMode] || 0;
+    const totalCount = state.totalFlips || 0;
+
+    // The prominent digital counter displays the count for the active mode
     if (elements.flipCount) {
-      elements.flipCount.textContent = String(state.flipCount).padStart(4, '0');
+      elements.flipCount.textContent = String(modeCount).padStart(4, '0');
+    }
+
+    // Substat displays both Mode specific count and Global Total
+    if (elements.modeStat) {
+      const modeConfig = PERSONALITY_CONFIGS[currentMode];
+      const modeLabel = modeConfig ? modeConfig.name.toUpperCase() : currentMode.toUpperCase();
+      elements.modeStat.textContent = `${modeLabel}: ${String(modeCount).padStart(4, '0')} • TOTAL: ${String(totalCount).padStart(4, '0')}`;
     }
   }
 
@@ -426,16 +536,26 @@
     }
   }
 
-  // --- Physical Switch Rendering Engine ---
+  // =========================================================================
+  // REAL PHYSICS SWITCH RENDERING ENGINE
+  // Uses physical spring-mass-damper oscillations with stop collisions
+  // =========================================================================
   function renderSwitchState(isOn) {
     state.isOn = isOn;
     
     if (elements.switchToggle) {
       elements.switchToggle.setAttribute('aria-checked', isOn ? 'true' : 'false');
+      
       if (isOn) {
-        elements.switchToggle.classList.add('is-on');
+        // Trigger real spring physics snap to ON
+        elements.switchToggle.classList.remove('snap-off');
+        void elements.switchToggle.offsetWidth; // Force reflow to re-trigger physics keyframes
+        elements.switchToggle.classList.add('snap-on', 'is-on');
       } else {
-        elements.switchToggle.classList.remove('is-on');
+        // Trigger real spring physics snap to OFF with elastic rebound
+        elements.switchToggle.classList.remove('snap-on', 'is-on');
+        void elements.switchToggle.offsetWidth; // Force reflow
+        elements.switchToggle.classList.add('snap-off');
       }
     }
 
@@ -454,11 +574,9 @@
     state.isEasterEggActive = true;
     document.body.classList.add('easter-egg-active');
 
-    // Synthesize celebration sci-fi arpeggio
     soundEngine.playEasterEggFanfare();
     triggerHaptic([40, 40, 40, 40, 80, 80, 180]);
 
-    // Append and activate Sentient mode in the dropdown if not present
     if (elements.personalitySelect) {
       let optionExists = Array.from(elements.personalitySelect.options).some(opt => opt.value === 'sentient');
       if (!optionExists) {
@@ -470,6 +588,7 @@
       elements.personalitySelect.value = 'sentient';
       state.currentPersonality = 'sentient';
       updatePersonalityDescription();
+      updateCounterDisplay();
     }
 
     setStatusMessage(
@@ -591,10 +710,8 @@
     const config = PERSONALITY_CONFIGS[personality] || PERSONALITY_CONFIGS.snap;
     const routine = computeBehaviorRoutine(personality);
     
-    // Execute personality pre-action
     if (routine.preAction) routine.preAction();
 
-    // Schedule auto-off revert
     setTimeout(() => {
       // 1. Synthesize realistic mechanical click OFF sound
       soundEngine.playSwitchClick(false, config.pitchFactor);
@@ -602,24 +719,31 @@
       // 2. Trigger tactile haptic feedback for auto-off
       triggerHaptic(config.hapticOff);
 
-      // 3. Programmatically snap lever back to OFF
+      // 3. Programmatically snap lever back to OFF using real physics simulation
       renderSwitchState(false);
       
       // 4. Execute routine cleanups
       if (routine.postAction) routine.postAction();
 
-      // 5. Update counts
-      state.flipCount += 1;
+      // 5. Update counts in database for current personality & total
+      state.totalFlips += 1;
+      state.modeFlips[personality] = (state.modeFlips[personality] || 0) + 1;
       state.sessionFlips += 1;
-      saveStoredCount(state.flipCount);
+
+      // Save atomically to IndexedDB + localStorage database
+      database.saveStats({
+        total: state.totalFlips,
+        byMode: state.modeFlips
+      });
+
+      // Update counters immediately
       updateCounterDisplay();
 
       // 6. Check for Easter Egg (20 flips in 1 session)
       if (state.sessionFlips === EASTER_EGG_THRESHOLD && !state.isEasterEggActive) {
         triggerEasterEgg();
       } else {
-        // Output witty/sarcastic response
-        const wittyRemark = pickMessage(personality, state.flipCount);
+        const wittyRemark = pickMessage(personality, state.totalFlips);
         setStatusMessage(wittyRemark, state.isEasterEggActive ? 'SENTIENT' : 'OFFLINE');
       }
 
@@ -629,7 +753,7 @@
         if (elements.terminalBadge) {
           elements.terminalBadge.textContent = state.isEasterEggActive ? 'SENTIENT' : 'READY';
         }
-      }, 140);
+      }, 150);
     }, routine.delayMs);
   }
 
@@ -639,12 +763,10 @@
       event.preventDefault();
     }
 
-    // Lockout guard: Ignore interactions while an auto-reset sequence is in progress
     if (state.isInteracting) {
       return;
     }
 
-    // If currently OFF, flipping turns it ON and triggers auto-reversal
     if (!state.isOn) {
       const config = PERSONALITY_CONFIGS[state.currentPersonality] || PERSONALITY_CONFIGS.snap;
       
@@ -654,7 +776,7 @@
       // 2. Haptic vibration for touch devices
       triggerHaptic(config.hapticOn);
 
-      // 3. Update state & UI
+      // 3. Update state & trigger real spring physics snap
       state.isInteracting = true;
       renderSwitchState(true);
       
@@ -664,60 +786,73 @@
   }
 
   // --- Reset Counter Handler ---
-  function handleResetCounter() {
+  async function handleResetCounter() {
     if (state.isInteracting) return;
     
     soundEngine.playRelayClick(1.6);
     triggerHaptic(15);
 
-    state.flipCount = 0;
-    saveStoredCount(0);
+    // Reset current mode and total
+    state.totalFlips = 0;
+    Object.keys(state.modeFlips).forEach(k => {
+      state.modeFlips[k] = 0;
+    });
+
+    await database.saveStats({
+      total: 0,
+      byMode: state.modeFlips
+    });
+
     updateCounterDisplay();
-    setStatusMessage("Flip counter reset to 0000. Your past failures have been wiped.", "RESET");
+    setStatusMessage("Database cleared. All mode counters reset to 0000.", "RESET");
   }
 
   // --- Personality Selection Handler ---
   function handlePersonalityChange(e) {
     const selected = e.target.value;
     state.currentPersonality = selected;
+
     try {
       localStorage.setItem(STORAGE_KEY_PERSONALITY, selected);
-    } catch {
-      // ignore
-    }
+    } catch {}
+
     updatePersonalityDescription();
+
+    // Immediately synchronize and show count for the newly selected personality!
+    updateCounterDisplay();
 
     const config = PERSONALITY_CONFIGS[selected] || PERSONALITY_CONFIGS.snap;
     soundEngine.playSwitchClick(true, config.pitchFactor);
     triggerHaptic(20);
 
-    setStatusMessage(`Personality matrix loaded: ${config.name.toUpperCase()}`, "CONFIG");
+    const modeCount = state.modeFlips[selected] || 0;
+    setStatusMessage(`Loaded ${config.name.toUpperCase()} (Flipped ${modeCount} times)`, "CONFIG");
   }
 
   // --- Global Keyboard Controls ---
   function handleGlobalKeyDown(e) {
-    // Only capture Space and Enter
     if (e.key === ' ' || e.key === 'Enter') {
       const target = e.target;
       const isSelect = target && target.tagName === 'SELECT';
       const isResetBtn = target && target.id === 'reset-counter-btn';
 
-      // Allow native behavior on dropdowns and buttons
       if (isSelect || isResetBtn) {
         return;
       }
 
-      // Prevent page scrolling on Spacebar and toggle switch
       e.preventDefault();
       handleToggleFlip();
     }
   }
 
   // --- Initialize Application ---
-  function init() {
-    // 1. Load persisted count
-    state.flipCount = loadStoredCount();
-    updateCounterDisplay();
+  async function init() {
+    // 1. Initialize IndexedDB database and restore persistent stats
+    await database.init();
+    const storedStats = await database.loadStats();
+    
+    state.totalFlips = storedStats.total || 0;
+    state.modeFlips = storedStats.byMode || {};
 
     // 2. Load stored personality preference if available
     try {
@@ -728,10 +863,10 @@
           elements.personalitySelect.value = savedPersonality;
         }
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
+
     updatePersonalityDescription();
+    updateCounterDisplay();
 
     // 3. Ensure initial resting state is OFF
     renderSwitchState(false);
@@ -740,13 +875,11 @@
     if (elements.switchToggle) {
       elements.switchToggle.addEventListener('click', handleToggleFlip);
 
-      // Touch optimization: prime audio context on touchstart
       elements.switchToggle.addEventListener('touchstart', () => {
         soundEngine.init();
       }, { passive: true });
     }
 
-    // Global keyboard support: Space and Enter keys anywhere
     window.addEventListener('keydown', handleGlobalKeyDown);
 
     if (elements.resetBtn) {
