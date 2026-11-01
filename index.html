@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Useless Switch | 3D Kinetic Simulator</title>
+  <meta name="description"
+    content="A tactile, hyper-realistic 3D physical toggle switch interface that adamantly turns itself off with humorous personalities.">
+
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="ambient-glow" aria-hidden="true"></div>
+
+  <div class="app-layout">
+    <!-- Top Header & Branding -->
+    <header class="app-header">
+      <div class="brand-badge">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span class="brand-title">SYS-NOOP // REV 2.4</span>
+      </div>
+      <h1 class="main-title">THE USELESS SWITCH</h1>
+      <p class="tagline">An intricately over-engineered self-reversing mechanism.</p>
+    </header>
+
+    <!-- Main Workspace / Device Stage -->
+    <main class="console-stage">
+      <!-- 3D Physical Enclosure / Machine Faceplate -->
+      <div class="machine-plate" id="machine-plate">
+        <!-- Corner Screw Fixtures -->
+        <span class="screw screw-tl" aria-hidden="true"></span>
+        <span class="screw screw-tr" aria-hidden="true"></span>
+        <span class="screw screw-bl" aria-hidden="true"></span>
+        <span class="screw screw-br" aria-hidden="true"></span>
+
+        <!-- Plate Top Header Platelet -->
+        <div class="plate-spec">
+          <div class="spec-label">MODEL: PROTO-OFF-99</div>
+          <div class="spec-voltage">240V ~ 0.0W</div>
+        </div>
+
+        <!-- 3D Toggle Switch Apparatus -->
+        <div class="switch-station">
+          <div class="switch-label label-off" aria-hidden="true">OFF</div>
+
+          <!-- Switch Well / Recessed Chamber -->
+          <div class="switch-well">
+            <button type="button" id="switch-toggle" class="switch-lever" role="switch" aria-checked="false"
+              aria-label="Useless Toggle Switch" tabindex="0">
+              <div class="lever-stem">
+                <div class="lever-face face-front"></div>
+                <div class="lever-face face-back"></div>
+                <div class="lever-face face-left"></div>
+                <div class="lever-face face-right"></div>
+                <div class="lever-face face-top">
+                  <div class="grip-ridges"></div>
+                </div>
+              </div>
+            </button>
+            <div class="well-shadow" aria-hidden="true"></div>
+          </div>
+
+          <div class="switch-label label-on" aria-hidden="true">ON</div>
+        </div>
+
+        <!-- Indicator Pilot LED -->
+        <div class="indicator-group" aria-hidden="true">
+          <div class="led-light" id="status-led"></div>
+          <span class="led-subtext">CIRCUIT OVERRIDE</span>
+        </div>
+
+        <!-- Dynamic Status Ticker Display -->
+        <section class="ticker-housing" aria-live="polite">
+          <div class="ticker-header">
+            <span class="ticker-tab">TERMINAL READOUT</span>
+            <span class="ticker-status" id="terminal-badge">READY</span>
+          </div>
+          <div class="ticker-display">
+            <span class="ticker-prompt">&gt;</span>
+            <p id="status-text" class="status-message">Switch is currently resting in peace. Dare to flick it?</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Lower Control Dashboard -->
+      <aside class="control-hud">
+        <!-- Persistent Flip Counter Card -->
+        <div class="hud-card counter-card">
+          <div class="card-eyebrow">TIMES REVERSED</div>
+          <div class="counter-display">
+            <span class="counter-digit" id="flip-count">0000</span>
+          </div>
+          <button type="button" id="reset-counter-btn" class="text-action-btn" title="Reset stored count">Reset
+            Counter</button>
+        </div>
+
+        <!-- Behavioral Personality Selector Card -->
+        <div class="hud-card personality-card">
+          <label for="personality-select" class="card-eyebrow">BEHAVIOR MATRIX</label>
+          <div class="select-wrapper">
+            <select id="personality-select" class="custom-select" aria-label="Personality Mode Selector">
+              <option value="snap">⚡ Instant Snap (Brutal)</option>
+              <option value="hesitant">⏳ Hesitant &amp; Unsure</option>
+              <option value="passive-aggressive">🙄 Passive-Aggressive</option>
+              <option value="panicked">🚨 Panic &amp; Alarm</option>
+              <option value="lazy">🦥 Reluctant Sloth</option>
+              <option value="glitch">👾 Glitched Quantum</option>
+            </select>
+            <span class="select-chevron" aria-hidden="true">▼</span>
+          </div>
+          <div class="personality-hint" id="personality-desc">
+            Reverts instantly with mechanical contempt.
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer Meta -->
+    <footer class="app-footer">
+      <div class="keyboard-guide">
+        <kbd>Space</kbd> or <kbd>Enter</kbd> to toggle &bull; Powered by Pure CSS 3D &amp; Vanilla JS
+      </div>
+    </footer>
+  </div>
+
+  <!-- Core Application Script -->
+  <script src="script.js"></script>
+</body>
+
+</html>

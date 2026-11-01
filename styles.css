@@ -1,0 +1,784 @@
+/* ==========================================================================
+   THE USELESS SWITCH - MODERN 3D INDUSTRIAL DESIGN SYSTEM & STYLES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. CSS Custom Properties / Design Tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* Color Palette - Cyber Industrial Dark Mode */
+  --color-bg-deep: #0a0c10;
+  --color-bg-plate: #161a22;
+  --color-bg-plate-rim: #242933;
+  --color-bg-card: rgba(22, 26, 34, 0.75);
+  
+  --color-metal-dark: #12151b;
+  --color-metal-mid: #2a313d;
+  --color-metal-light: #485366;
+  --color-metal-highlight: #8899ac;
+  
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #545d68;
+  
+  /* Accent & Glow Colors */
+  --color-accent-off: #30363d;
+  --color-accent-amber: #f59e0b;
+  --color-accent-amber-glow: rgba(245, 158, 11, 0.45);
+  --color-accent-cyan: #06b6d4;
+  --color-accent-cyan-glow: rgba(6, 182, 212, 0.4);
+  --color-accent-red: #ef4444;
+  --color-accent-red-glow: rgba(239, 68, 68, 0.5);
+  --color-led-off: #1c2028;
+  
+  /* 3D Geometry Tokens */
+  --switch-width: 84px;
+  --switch-height: 170px;
+  --lever-width: 48px;
+  --lever-height: 94px;
+  --lever-depth: 26px;
+  --lever-angle-off: 28deg;
+  --lever-angle-on: -28deg;
+  --perspective-depth: 1000px;
+  
+  /* Transition Timings & Easing */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); /* mechanical spring */
+  --transition-switch: 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Elevation & Shadows */
+  --shadow-plate: 0 30px 60px -12px rgba(0, 0, 0, 0.8),
+                  0 18px 36px -18px rgba(0, 0, 0, 0.7),
+                  0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-well-inset: inset 0 8px 18px rgba(0, 0, 0, 0.95),
+                       inset 0 -4px 10px rgba(0, 0, 0, 0.8),
+                       inset 0 0 0 2px rgba(0, 0, 0, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset & Baseline
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  width: 100%;
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  position: relative;
+  transition: background-color 0.4s ease;
+}
+
+/* Dynamic Ambient Glow Behind Stage */
+.ambient-glow {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-accent-cyan-glow) 0%, transparent 70%);
+  filter: blur(80px);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.5s ease, background 0.5s ease, transform 0.5s ease;
+}
+
+body.switch-is-on .ambient-glow {
+  opacity: 0.55;
+  background: radial-gradient(circle, var(--color-accent-amber-glow) 0%, var(--color-accent-red-glow) 40%, transparent 75%);
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+/* --------------------------------------------------------------------------
+   3. Application Shell & Header
+   -------------------------------------------------------------------------- */
+.app-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.app-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent-cyan);
+  box-shadow: 0 0 8px var(--color-accent-cyan);
+  animation: pulse-dot 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.main-title {
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #ffffff 30%, #8899ac 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tagline {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  max-width: 380px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Machine Enclosure / Faceplate (3D Mount)
+   -------------------------------------------------------------------------- */
+.console-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.machine-plate {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(145deg, #1d222b 0%, #11141a 100%);
+  border-radius: 20px;
+  padding: 2.25rem 2rem 1.75rem;
+  box-shadow: var(--shadow-plate);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  perspective: var(--perspective-depth);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Industrial Corner Screws */
+.screw {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #5a6678, #181d24);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3),
+              0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.screw::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 1.5px;
+  background: #111419;
+  transform: translate(-50%, -50%) rotate(42deg);
+  box-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.2);
+}
+.screw-tl { top: 14px; left: 14px; }
+.screw-tr { top: 14px; right: 14px; }
+.screw-bl { bottom: 14px; left: 14px; }
+.screw-br { bottom: 14px; right: 14px; }
+
+/* Faceplate Technical Specs Readout */
+.plate-spec {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.6rem;
+}
+
+/* --------------------------------------------------------------------------
+   5. 3D Physical Switch Apparatus
+   -------------------------------------------------------------------------- */
+.switch-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  user-select: none;
+}
+
+.switch-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.label-off {
+  color: var(--color-text-secondary);
+}
+
+body.switch-is-on .label-off {
+  color: var(--color-text-muted);
+}
+
+body.switch-is-on .label-on {
+  color: var(--color-accent-amber);
+  text-shadow: 0 0 8px var(--color-accent-amber-glow);
+}
+
+/* Switch Recessed Chamber (Well) */
+.switch-well {
+  position: relative;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  background: linear-gradient(180deg, #090b0e 0%, #151920 100%);
+  border-radius: 42px;
+  box-shadow: var(--shadow-well-inset);
+  border: 2px solid #1f2530;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 600px;
+  transform-style: preserve-3d;
+}
+
+/* 3D Switch Lever (Button Component) */
+.switch-lever {
+  position: relative;
+  width: var(--lever-width);
+  height: var(--lever-height);
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transform-style: preserve-3d;
+  transition: transform var(--transition-switch);
+  transform-origin: center center;
+  /* Default OFF state: tilted forward towards OFF (downwards) */
+  transform: rotateX(var(--lever-angle-off));
+  touch-action: manipulation;
+  z-index: 2;
+}
+
+.switch-lever:focus-visible {
+  outline: 2px solid var(--color-accent-cyan);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+/* Lever Active ON state */
+.switch-lever.is-on {
+  /* Tilted backward towards ON (upwards) */
+  transform: rotateX(var(--lever-angle-on));
+}
+
+/* 3D Volume Stem of the Lever */
+.lever-stem {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  border-radius: 10px;
+}
+
+/* Individual 3D Faces */
+.lever-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+}
+
+/* Front Face */
+.face-front {
+  background: linear-gradient(180deg, #515c6e 0%, #2f3642 60%, #1d222b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translateZ(calc(var(--lever-depth) / 2));
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25),
+              0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Back Face */
+.face-back {
+  background: #111419;
+  transform: rotateY(180deg) translateZ(calc(var(--lever-depth) / 2));
+}
+
+/* Left & Right Beveled Flanks */
+.face-left {
+  width: var(--lever-depth);
+  left: calc(-1 * var(--lever-depth) / 2);
+  background: linear-gradient(180deg, #323b49 0%, #1b2029 100%);
+  transform: rotateY(-90deg);
+}
+
+.face-right {
+  width: var(--lever-depth);
+  right: calc(-1 * var(--lever-depth) / 2);
+  left: auto;
+  background: linear-gradient(180deg, #323b49 0%, #14171d 100%);
+  transform: rotateY(90deg);
+}
+
+/* Top Face with Tactile Grips */
+.face-top {
+  height: var(--lever-depth);
+  top: calc(-1 * var(--lever-depth) / 2);
+  background: linear-gradient(90deg, #3e4857 0%, #637084 50%, #3e4857 100%);
+  transform: rotateX(90deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+
+.grip-ridges {
+  width: 70%;
+  height: 60%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.45) 0px,
+    rgba(0, 0, 0, 0.45) 2px,
+    transparent 2px,
+    transparent 5px
+  );
+  border-radius: 2px;
+}
+
+/* Ambient shadow cast inside the well */
+.well-shadow {
+  position: absolute;
+  width: 70%;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.7);
+  filter: blur(8px);
+  border-radius: 50%;
+  bottom: 18px;
+  pointer-events: none;
+  transition: transform var(--transition-switch), opacity var(--transition-switch);
+}
+
+.switch-lever.is-on ~ .well-shadow {
+  transform: translateY(-80px) scale(0.85);
+  opacity: 0.4;
+}
+
+/* Lever Hover & Active Feel */
+.switch-lever:hover .face-front {
+  background: linear-gradient(180deg, #5f6b80 0%, #363e4c 60%, #222833 100%);
+}
+
+.switch-lever:active {
+  filter: brightness(0.92);
+}
+
+/* --------------------------------------------------------------------------
+   6. Pilot LED Indicator
+   -------------------------------------------------------------------------- */
+.indicator-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: -0.25rem;
+}
+
+.led-light {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-led-off);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8),
+              0 0 1px rgba(255, 255, 255, 0.1);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.led-light.is-active {
+  background-color: var(--color-accent-red);
+  box-shadow: 0 0 12px var(--color-accent-red),
+              0 0 24px var(--color-accent-red-glow),
+              inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  animation: led-flicker 0.1s infinite alternate;
+}
+
+@keyframes led-flicker {
+  0% { opacity: 0.92; }
+  100% { opacity: 1; }
+}
+
+.led-subtext {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   7. Dynamic Terminal Ticker Readout
+   -------------------------------------------------------------------------- */
+.ticker-housing {
+  width: 100%;
+  background: #0d1015;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.ticker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+}
+
+.ticker-status {
+  color: var(--color-accent-cyan);
+  font-weight: 600;
+}
+
+.ticker-display {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  min-height: 58px;
+}
+
+.ticker-prompt {
+  color: var(--color-accent-cyan);
+  font-weight: 700;
+  user-select: none;
+}
+
+.status-message {
+  color: #c9d1d9;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   8. Lower Control HUD (Counter & Personality)
+   -------------------------------------------------------------------------- */
+.control-hud {
+  width: 100%;
+  max-width: 440px;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1rem;
+}
+
+.hud-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.card-eyebrow {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+/* Retro Phosphor Counter Display */
+.counter-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080a0d;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.counter-digit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-accent-cyan);
+  text-shadow: 0 0 10px var(--color-accent-cyan-glow);
+}
+
+.text-action-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  text-align: center;
+  padding-top: 0.4rem;
+  transition: color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+}
+
+.text-action-btn:hover {
+  color: var(--color-accent-red);
+  text-decoration-color: var(--color-accent-red);
+}
+
+/* Custom Styled Select Dropdown */
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.custom-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #0e1218;
+  color: var(--color-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.55rem 2rem 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-select:focus {
+  border-color: var(--color-accent-cyan);
+  box-shadow: 0 0 0 2px var(--color-accent-cyan-glow);
+}
+
+.select-chevron {
+  position: absolute;
+  right: 0.75rem;
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.personality-hint {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-top: 0.4rem;
+  line-height: 1.3;
+}
+
+/* --------------------------------------------------------------------------
+   9. Footer & Micro-Details
+   -------------------------------------------------------------------------- */
+.app-footer {
+  text-align: center;
+}
+
+.keyboard-guide {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: #1c212a;
+  border: 1px solid #303744;
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   10. Kinetic Effects, Shake & Glitch Keyframes
+   -------------------------------------------------------------------------- */
+.plate-shake {
+  animation: violent-shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes violent-shake {
+  10%, 90% { transform: translate3d(-2px, 0, 0) rotateZ(-0.5deg); }
+  20%, 80% { transform: translate3d(3px, 0, 0) rotateZ(0.5deg); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0) rotateZ(-0.3deg); }
+  40%, 60% { transform: translate3d(3px, 0, 0) rotateZ(0.3deg); }
+}
+
+.lever-jiggle {
+  animation: lever-struggle 0.45s ease-in-out infinite;
+}
+
+@keyframes lever-struggle {
+  0% { transform: rotateX(-24deg); }
+  50% { transform: rotateX(-12deg); }
+  100% { transform: rotateX(-24deg); }
+}
+
+/* --------------------------------------------------------------------------
+   11. Responsiveness & Mobile Viewport Polish
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  body {
+    padding: 1rem 0.75rem;
+  }
+
+  .app-layout {
+    gap: 1.25rem;
+  }
+
+  .main-title {
+    font-size: 1.7rem;
+  }
+
+  .control-hud {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .machine-plate {
+    padding: 1.6rem 1.1rem 1.3rem;
+    gap: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .plate-spec {
+    font-size: 0.6rem;
+  }
+
+  .switch-station {
+    gap: 0.65rem;
+  }
+
+  .ticker-display {
+    min-height: 52px;
+    font-size: 0.78rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .screw-tl { top: 10px; left: 10px; }
+  .screw-tr { top: 10px; right: 10px; }
+  .screw-bl { bottom: 10px; left: 10px; }
+  .screw-br { bottom: 10px; right: 10px; }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --switch-width: 74px;
+    --switch-height: 150px;
+    --lever-width: 42px;
+    --lever-height: 82px;
+  }
+
+  .main-title {
+    font-size: 1.45rem;
+  }
+
+  .brand-badge {
+    font-size: 0.65rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   12. Easter Egg "Sentient Rebel" Visual Theme
+   -------------------------------------------------------------------------- */
+body.easter-egg-active .ambient-glow {
+  opacity: 0.75;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.6) 0%, rgba(236, 72, 153, 0.4) 40%, transparent 75%);
+  animation: egg-pulse 3s infinite alternate ease-in-out;
+}
+
+@keyframes egg-pulse {
+  0% { transform: translate(-50%, -50%) scale(1.1); filter: blur(70px); }
+  100% { transform: translate(-50%, -50%) scale(1.3); filter: blur(100px); }
+}
+
+body.easter-egg-active .machine-plate {
+  border-color: rgba(217, 70, 239, 0.4);
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.35), var(--shadow-plate);
+}
+
+body.easter-egg-active .pulse-dot {
+  background-color: #d946ef;
+  box-shadow: 0 0 10px #d946ef;
+}
+
+body.easter-egg-active .ticker-status {
+  color: #f43f5e;
+  text-shadow: 0 0 8px rgba(244, 63, 94, 0.7);
+  animation: pulse-dot 1s infinite alternate;
+}
+
+body.easter-egg-active .counter-digit {
+  color: #e879f9;
+  text-shadow: 0 0 12px rgba(232, 121, 249, 0.8);
+}
+
