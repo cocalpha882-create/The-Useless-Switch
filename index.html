@@ -50,18 +50,24 @@
 
         <!-- 3D Toggle Switch Apparatus -->
         <div class="switch-station">
-          <div class="switch-label label-off" aria-hidden="true">OFF</div>
+          <div class="switch-label label-on" aria-hidden="true">ON</div>
 
           <!-- Switch Well / Recessed Chamber -->
           <div class="switch-well">
             <button type="button" id="switch-toggle" class="switch-lever" role="switch" aria-checked="false"
               aria-label="Useless Toggle Switch" tabindex="0">
               <div class="lever-stem">
-                <div class="lever-face face-front"></div>
+                <div class="lever-face face-front">
+                  <div class="rocker-ridge"></div>
+                  <div class="rocker-accent"></div>
+                </div>
                 <div class="lever-face face-back"></div>
                 <div class="lever-face face-left"></div>
                 <div class="lever-face face-right"></div>
                 <div class="lever-face face-top">
+                  <div class="grip-ridges"></div>
+                </div>
+                <div class="lever-face face-bottom">
                   <div class="grip-ridges"></div>
                 </div>
               </div>
@@ -69,7 +75,7 @@
             <div class="well-shadow" aria-hidden="true"></div>
           </div>
 
-          <div class="switch-label label-on" aria-hidden="true">ON</div>
+          <div class="switch-label label-off" aria-hidden="true">OFF</div>
         </div>
 
         <!-- Indicator Pilot LED -->
@@ -127,7 +133,7 @@
     <!-- Footer Meta -->
     <footer class="app-footer">
       <div class="keyboard-guide">
-        <kbd>Space</kbd> or <kbd>Enter</kbd> to toggle &bull; Powered by Pure CSS 3D &amp; Vanilla JS
+        <kbd>Space</kbd> or <kbd>Enter</kbd> to toggle switch
       </div>
     </footer>
   </div>
